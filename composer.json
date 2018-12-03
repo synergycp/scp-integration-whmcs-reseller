@@ -1,0 +1,37 @@
+{
+	"name": "synergycp/scp-integration-whmcs-reseller",
+	"description": "Synergy Control Panel WHMCS Reseller",
+	"keywords": ["Synergy", "Server", "Control", "Panel", "Dedicated", "Reseller", "WHMCS"],
+	"license": "none",
+	"type": "project",
+	"require": {
+	},
+	"require-dev": {
+	},
+	"repositories": [],
+	"autoload": {
+		"classmap": [
+            "bootstrap/autoload.php"
+		],
+		"psr-4": {
+			"Scp\\": "Scp/src",
+            "Scp\\WhmcsReseller\\": "src"
+		}
+	},
+	"autoload-dev": {
+		"classmap": [
+			"tests/TestCase.php"
+		]
+	},
+	"scripts": {
+		"post-install-cmd": [
+		],
+		"post-update-cmd": [
+		],
+		"post-create-project-cmd": [
+		]
+	},
+	"config": {
+		"preferred-install": "dist"
+	}
+}
