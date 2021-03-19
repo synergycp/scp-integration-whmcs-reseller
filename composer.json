@@ -19,11 +19,6 @@
             "Scp\\WhmcsReseller\\": "src"
 		}
 	},
-	"autoload-dev": {
-		"classmap": [
-			"src/TestCase.php"
-		]
-	},
 	"scripts": {
     "test": "bin/test.sh",
 		"post-install-cmd": [

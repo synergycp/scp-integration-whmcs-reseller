@@ -4,56 +4,80 @@ namespace Scp\WhmcsReseller;
 
 use Scp\Api\Api as OriginalApi;
 use Scp\Support\Arr;
+use Scp\WhmcsReseller\Client\ClientService;
 use Scp\WhmcsReseller\Whmcs\Whmcs;
 
-class Api extends OriginalApi {
-	/**
-	 * @var Whmcs
-	 */
-	protected $whmcs;
+class Api
+extends OriginalApi
+{
+  /**
+   * @var Whmcs
+   */
+  protected $whmcs;
 
-	/**
-	 * Api constructor.
-	 *
-	 * @param Whmcs        $whmcs
-	 * @param ApiTransport $transport
-	 */
-	public function __construct(
-		Whmcs $whmcs,
-		ApiTransport $transport
-	) {
-		$this->whmcs = $whmcs;
+  /**
+   * Api constructor.
+   *
+   * @param Whmcs        $whmcs
+   * @param ApiTransport $transport
+   */
+  public function __construct(
+    Whmcs $whmcs,
+    ApiTransport $transport
+  ) {
+    $this->whmcs = $whmcs;
 
-		$params = $whmcs->getParams();
-		$apiKey = Arr::get($params, 'serveraccesshash');
+    $params = $whmcs->getParams();
+    $apiKey = Arr::get($params, 'serveraccesshash');
+    $hostname = Arr::get($params, 'serverhostname');
+    $parsed = parse_url($hostname);
+    $path = Arr::get($parsed, 'path', '');
+    $host = Arr::get($parsed, 'host', '');
+    $default_scheme = Arr::get($params, 'serversecure', false) ? 'https' : 'http';
+    $scheme = Arr::get($parsed, 'scheme', $default_scheme);
 
-		$hostname = Arr::get($params, 'serverhostname');
+    if ($path) {
+      $path = trim($path, '/') . '/';
+    }
 
-		$parsed = parse_url($hostname);
-		$path = Arr::get($parsed, 'path', '');
-		$host = Arr::get($parsed, 'host', '');
-		$scheme = Arr::get($parsed, 'scheme', 'http');
+    if ($host) {
+      $host .= '/';
+    }
 
-		if ($path) {
-			$path = trim($path, '/') . '/';
-		}
+    $url = sprintf('%s://%s%s', $scheme, $host, $path);
 
-		if ($host) {
-			$host .= '/';
-		}
+    parent::__construct($url, $apiKey);
 
-		$url = sprintf('%s://%s%s', $scheme, $host, $path);
+    $this->setTransport($transport);
+  }
 
-		parent::__construct($url, $apiKey);
+  public function call($method, $path, array $data = [])
+  {
+    if (!$this->url || !$this->apiKey) {
+      throw new \RuntimeException('This host is not linked to SynergyCP (server = 0)');
+    }
 
-		$this->setTransport($transport);
-	}
+    return parent::call($method, $path, $data);
+  }
 
-	public function call($method, $path, array $data = []) {
-		if (!$this->url || !$this->apiKey) {
-			throw new \RuntimeException('This host is not linked to SynergyCP (server = 0)');
-		}
+  /**
+   * Get an API Instance on behalf of the current authed Client.
+   *
+   * @return static
+   */
+  public function asClient()
+  {
+    $api = new static($this->whmcs, $this->getTransport());
 
-		return parent::call($method, $path, $data);
-	}
+    // Make sure client API is not now the default one.
+    static::instance($this);
+
+    $clients = App::get()
+      ->make(ClientService::class);
+    $apiKey = $clients->apiKey();
+
+    $api->setApiKey($apiKey->key);
+
+    return $api;
+  }
 }
