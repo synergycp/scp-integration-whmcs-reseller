@@ -2,7 +2,7 @@
 
 use Scp\WhmcsReseller\App;
 
-class TestCase extends PHPUnit_Framework_TestCase {
+class TestCase extends \Scp\TestCase {
 	/**
 	 * @return App
 	 */

@@ -3,7 +3,7 @@
 use Scp\WhmcsReseller\App;
 
 class AppTest extends TestCase {
-	public function setUp() {
+	public function setUp(): void {
 	}
 
 	public function testGet() {
